@@ -3,6 +3,7 @@ from flask import Flask,render_template,jsonify,request,redirect,send_from_direc
 import datetime
 import requests
 import bcrypt
+import uuid
 DS = datastore.Client()
 EVENT = 'Event' 
 #ROOT = DS.key('Event', 'root') 
@@ -16,7 +17,7 @@ def test():
     print(user_id)
     if user_id:
         return send_from_directory('www','index.html')
-        
+               
     else:
         return send_from_directory('www','login.html')
 #@app.route('/')
@@ -45,42 +46,52 @@ def test():
 @app.route('/login',methods=["POST","GET"])
 def login():
     if request.method == 'POST':
-#        print('herePost')
-#        data = request.get_json(force = True)
-#        v = data['username']
-#        print(v)
-#        ROOT = DS.key('Event',v)
-#        k = DS.key('Event', 5646488461901824,parent=ROOT)
-#        print(k)
-#        val=DS.get(k)
-#       print(val)
-        #entity = datastore.Entity(key=DS.key(EVENT, parent=ROOT))
-        #entity.update({'username': data['username'], 'pass': data['pass']})
-        #DS.put(entity)
-#        if val:
-#             passwd=data['pass'].encode("utf-8")
-#             salt = bcrypt.gensalt(10)
-#             hashed = bcrypt.hashpw(passwd, salt)
-#             print(salt)
-#             print(hashed)
-#             #if val['pass']==hashed:
-#             if hashed:
+        print('herePost')
+        data = request.get_json(force = True)
+        v = data['username']
+        query=DS.query(kind='event')
+        query=query.add_filter('username','=','jameel').fetch()
+        v1=list(query)
+        val=v1[0]
+        print(val)
+#        return 'Done with login check'
+#    return 'out'
+        k = DS.key('Event')
+        #k = DS.key('Event',parent=ROOT)
+        #print(k)
+        #val=DS.get(k)
+        #e=datastore.Entity(key=k)
+        #e['username']=data['username']
+        #e['pass']=data['pass']
+#       #print(val)
+        #print(e)
+        #DS.put(e)
+        #print('Saved {}: {}'.format(task.key.name, task['description']))
+        #return ''
+        if val:
+             passwd=data['pass'].encode("utf-8")
+             salt = bcrypt.gensalt(10)
+             hashed = bcrypt.hashpw(passwd, salt)
+             print(salt)
+             print(hashed)
+             #if val['pass']==hashed:
+             if hashed:
+                token = uuid.uuid1() 
                 #token = data['username'] + '1234'
                 # Set-Cookie: username= 1234; path=/;
-                #response = make_response(redirect('/'))
-                #response.set_cookie('username',v,max-age=60*60 )
-   #             print('redirected')
-                #return redirect('index')
-#                print('auth')
-                #return response
-#                return ''
-#             else:
-#                print('unath')
-#                return ''
-#             return ''
-#        else: 
-#             print('inelse')
-#             return ''
+                response = make_response(redirect('/'))
+                print(response)
+                response.set_cookie('secret',token,max_age=60)
+                print('redirected')
+                #print('auth')
+                print(respone)
+                return response
+             else:
+                print('Iam unath')
+                return ''
+        else: 
+             print('inelse')
+             return ''
          #return redirect(url_for('/www/login.html'))
 
 #@app.route('/event',methods=["POST","GET"])

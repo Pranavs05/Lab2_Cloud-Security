@@ -1,5 +1,5 @@
 runtime: python38
-default_expiration: '30s'
+default_expiration: '20s'
 handlers:       
 - url: .*
   script: auto
