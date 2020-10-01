@@ -1,0 +1,71 @@
+<html>
+<head>
+    //<meta name="_csrf" th:content="${_csrf.token}"/>
+    //<meta name="_csrf_parameter_name" th:content="${_csrf.parameterName}"/>
+    //<link rel="icon" href="data:,">	
+</head>
+<title>Login Page</title>
+<script>
+ function reqJSON(method, path, data) {
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open(method, path, true);
+      xhr.setRequestHeader('Content-type','application/json');
+      xhr.responseType = 'json';
+      function resp(){
+		return {
+			status: xhr.status,
+			data: xhr.response,
+		};
+      };;
+      xhr.onload = () => {
+        if (xhr.status == 302) {
+          //get()
+          console.log('here')
+        }
+        else if (xhr.status >= 200 && xhr.status < 300) {
+          resolve(resp());
+        } else {
+          console.error('xhr with error',xhr);
+	  reject(resp());
+        }
+      };
+      xhr.onerror = () => {
+        console.error('xhr with error:',xhr);
+	reject(resp());
+      };
+      xhr.send(JSON.stringify(data));
+    });
+  }   
+
+ async function get() {
+      let {data} = await reqJSON("GET","/"); 
+  } 
+ 
+ async function postlogin() {
+        console.log('lhehrppph')
+	  await reqJSON("POST","/login",{
+	username: document.getElementById("uname").value,
+	pass : document.getElementById("pass").value,
+   });  
+   }
+ function createCookie(){
+	  cookieName='username';
+	  cookieValue= document.getElementById("uname").value;
+          var date = new Date();
+          date.setTime(date.getTime()+ (60*60*1000));  //(daysToExpire*24*60*60*1000));
+          document.cookie = cookieName + "=" + cookieValue + "; expires=" + date.toGMTString();
+     }
+  
+</script>
+console.log('Inside login')
+<body>
+<title> One-Page App</title>
+<h1> Welcome login webpage </h1>
+<form onsubmit="return false">
+    Username.Name: <input type="text" id="uname">
+    Password.: <input type="text" id="pass">
+    </form>
+    <button id="login" onclick="postlogin()">Login</button>
+</body>
+</html>

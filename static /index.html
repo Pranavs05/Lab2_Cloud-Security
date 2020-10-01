@@ -1,0 +1,187 @@
+<html>
+<head>
+<title> One-Page App</title>
+<style>
+	h1 {
+		font-size: 4em;
+		color: #000080;
+		font-weight: bold;
+	}
+	h2 {
+		font-size: 3em;
+		color: #4a71a3;
+		font-weight: bold;
+	}
+	p {
+		font-size: 2em;
+		font.weight: bold;
+		color: #151B54;
+	
+	}
+	form{
+		font_size: 2em;
+		
+	}
+	.ename {
+		font-size: 3em;
+	 	font-weight: bold;
+	}
+	.all{
+		font_size: 3em;
+		font_weight: bold;
+		color: #558;
+	}
+</style>
+<script>
+ function reqJSON(method, path, data) {
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open(method, path, true);
+      xhr.setRequestHeader('Content-type','application/json');
+      xhr.responseType = 'json';
+      function resp(){
+		return {
+			status: xhr.status,
+			data: xhr.response,
+		};
+      };;
+      xhr.onload = () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          resolve(resp());
+        } else {
+          console.error('xhr with error',xhr);
+	  reject(resp());
+        }
+      };
+      xhr.onerror = () => {
+        console.error('xhr with error:',xhr);
+	reject(resp());
+      };
+      xhr.send(JSON.stringify(data));
+    });
+  }
+
+
+  async function DelEvt(key) {
+	  await reqJSON("DELETE", "/event/"+ key);
+      await fetchEvts();
+  }
+
+  async function fetchEvts() {
+      let {data} = await reqJSON("GET","/events");
+      displayEvents(data.events);	  
+  } 
+
+  async function logout() {
+	console.log('logout') 
+	let {data} = await reqJSON("GET","/logout");
+}
+
+  async function CreateEvt(){
+      await reqJSON("POST","/event", {
+          name: document.getElementById("nameval").value,
+          date: document.getElementById("dateval").value,
+      });
+      await fetchEvts();
+
+  }
+  function displayEvents(events) {
+      const evt = document.getElementById('events');
+      evt.innerHTML = '';
+      eventdata = [];	
+      for (let event of events || []) {       
+        if(Past(event.date)) {
+		continue;
+	} 
+	 
+	eventdata.push(
+            `<div class ="event" key="${event.id}">
+		<span class ="ename">${event.name}---></span>
+                <span class ="all" date="${event.date}"></span>
+		<button onclick= "DelEvt(this.parentNode.getAttribute('key'))">delete</button>
+        </div>`);
+      }
+      evt.innerHTML = eventdata.join('\n')
+      displayTimers();
+  }
+  
+  function Past(dtStr) {
+      const date = (typeof dtStr === 'string') ? dateConv(dtStr):dtStr;
+      return date - new Date() < 0;
+  }
+
+  function dateConv(ds){
+      const val = ds.split('-')
+      return new Date (val[0],val[1]-1,val[2]);
+     
+  }
+
+  function countdown(date) {
+      let secs = Math.floor((+date-new Date())/1000);
+    
+      let mins = secs/60;
+      secs %= 60;
+
+      let hours  = Math.floor(mins/60)
+      mins %=60;
+
+      let days =  Math.floor(hours/24)
+      hours %= 24;
+
+      let units =[days, hours,mins,secs];
+      while (units.length > 0 && units[0] == 0){
+          units.shift();
+      }
+      return units.map( u=> ( u< 10 ? '0' : '') + u).join(':');
+  }
+
+
+  function displayTimer(v,now){
+      now = now || new Date();
+      	
+      const date = dateConv(v.getAttribute('date'));
+      const countdownval  = countdown(date);
+      if (countdownval == null) {
+         return false; 
+      }
+      v.innerText = countdownval;
+      return true;
+
+  }
+
+  function displayTimers(){
+    const nw =new Date();
+    const sp = document.querySelectorAll('span.all');
+    for(let v of sp) {
+        if (Past(v.getAttribute('date'))){
+            continue;
+        }
+        displayTimer(v,nw);
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('create').addEventListener('click', CreateEvt );
+    fetchEvts();
+    
+    setInterval(displayTimers ,1000);
+  });
+
+</script>
+</head>
+<body>
+    <h1> WELCOME TO  COUNTDOWN TIMER</h1>	
+    <h2> Add events below and delete using the delete button </h2>
+    <p> Note:: Date format : YYYY - MM - DD and yearless dates allowed 
+    
+    <form onsubmit="return false">
+    Event Name: <input type="text" id="nameval">
+    Date: <input type="text" id="dateval">
+    </form>
+    <button id = "create">Click </button>
+    <p>COUNTDOWN ------</p>
+    <div id="events"></div> 
+    <button id = "logout" onclick="logout()">logout </button>
+
+</body>
+</html>

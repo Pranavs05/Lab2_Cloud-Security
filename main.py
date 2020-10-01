@@ -4,22 +4,42 @@ import datetime
 import requests
 import bcrypt
 import uuid
+import os
 DS = datastore.Client()
 EVENT = 'Event' 
 #ROOT = DS.key('Event', 'root') 
-app = Flask(__name__)
+app = Flask(__name__,static_url_path='')
+asset_folder = os.path.join(app.root_path,'www')
 
 print("INto main")
 @app.route('/')
 def test():
-    user_id = request.cookies.get('username')
+    user_id = request.cookies.get('secret')
     print('Server Reached')
+    print(os.getcwd())
     print(user_id)
-    if user_id:
-        return send_from_directory('www','index.html')
-               
-    else:
-        return send_from_directory('www','login.html')
+    if not user_id:
+        #query=DS.query(kind='Event')
+        #query=query.add_filter('token_id','=',user_id).fetch()
+        #val=list(query)
+        #if val:
+        print(os.getcwd())
+        return redirect("/login?foo=123")
+        #return send_from_directory('static','index.html')
+        #return redirect("/www/index.html?fffg=158855")
+
+        #return send_from_directory('www','registration.html')             
+   # else:
+        #return send_from_directory('www','registration.html')
+    #root_dir = os.path.dirname(os.getcwd())
+    #print('main try')
+    #print(root_dir)
+    #print(os.path.join(root_dir,'static'))
+    #return send_from_directory(os.path.join(root_dir,'static'),'index.html')
+
+    return send_from_directory('static','index.html')
+
+    #return redirect("/login")
 #@app.route('/')
 #def mainpage():
 #    print('into index')
@@ -42,6 +62,52 @@ def test():
     #return send_from_directory('index.html', www)
 
 
+@app.route('/index.html')
+def index():
+    print("in index3")
+    print(os.getcwd())
+    return send_from_directory('static','index.htm')
+    #return render_template('index.html')
+
+
+
+
+
+@app.route('/register',methods=["POST","GET"])
+def register():
+     if request.method == 'GET':
+          print('get registration')
+          return send_from_directory('static','registration.html')
+     print('hereRegister')
+     data = request.get_json(force = True)
+     entity = datastore.Entity(key=DS.key(EVENT))
+     #entity.update({'username': data['username'], 'pass': data['pass']})
+     passwd=data['pass'].encode("utf-8")
+     salt = bcrypt.gensalt(5)
+     hashed = bcrypt.hashpw(passwd, salt)
+     print(salt)
+     print(hashed)
+     entity.update({'username': data['username'], 'pass': hashed})
+     #Ds.put(entity)
+     token = data['username'] + '1234'
+     response = redirect("/?g=1234")
+     response.set_cookie('secret',token,max_age=60*2)
+     entity.update({'token_id':token})
+     DS.put(entity)    
+     return response   
+
+
+@app.route('/logout',methods=["POST","GET"])
+def logout():
+      response = make_response(redirect("/?g=123"))
+      response.set_cookie('secret','',max_age=0)
+      print('Logout')
+      #data = request.get_json(force = True)
+      sess=request.cookies.get('secret')
+      print(sess)
+      DS.delete(DS.key('session', sess))
+      return response  
+
 
 @app.route('/login',methods=["POST","GET"])
 def login():
@@ -49,10 +115,12 @@ def login():
         print('herePost')
         data = request.get_json(force = True)
         v = data['username']
-        query=DS.query(kind='event')
-        query=query.add_filter('username','=','jameel').fetch()
-        v1=list(query)
-        val=v1[0]
+        query=DS.query(kind='Event')
+        print(query)
+        print('Query Generation')
+        query=query.add_filter('username','=',v).fetch()
+        val=list(query)
+        #val=v1[0]
         print(val)
 #        return 'Done with login check'
 #    return 'out'
@@ -70,29 +138,48 @@ def login():
         #return ''
         if val:
              passwd=data['pass'].encode("utf-8")
-             salt = bcrypt.gensalt(10)
-             hashed = bcrypt.hashpw(passwd, salt)
-             print(salt)
+             #salt = bcrypt.gensalt(5)
+             print(val[0]['pass'])
+             hashed = bcrypt.hashpw(passwd, val[0]['pass'])
              print(hashed)
              #if val['pass']==hashed:
-             if hashed:
-                token = uuid.uuid1() 
+                
+             if hashed==val[0]['pass']:
+                token = str(uuid.uuid1())
+                session = datastore.Entity(key=DS.key('session', token))
+                session.update({
+                    'username': data['username'],
+                    'exp': 1,
+                })
+                DS.put(session)
+
                 #token = data['username'] + '1234'
                 # Set-Cookie: username= 1234; path=/;
-                response = make_response(redirect('/'))
-                print(response)
-                response.set_cookie('secret',token,max_age=60)
-                print('redirected')
+                #response = make_response("")
+                #response = make_response(redirect("/index.html"))
+                response = redirect("/?g=1234")
+                print("Redirected tiot")
+                #response.headers['location'] = url_for('test')
+                response.set_cookie('secret',token,max_age=60*2)
+                print('redirected now')
                 #print('auth')
-                print(respone)
+                #val[0].update({'token_id':token})
+                #DS.put(val[0])
+                print(response)
                 return response
-             else:
-                print('Iam unath')
-                return ''
-        else: 
-             print('inelse')
-             return ''
-         #return redirect(url_for('/www/login.html'))
+             #else:
+             print('Iam unath login again')
+             return redirect('/login?f=1234')
+
+        #return redirect('/login?g=1234')
+        return redirect('/register')
+        #else: 
+             #print('inelse-register')
+             #return render_template('index.html')
+        #     return send_from_directory('static','registration.html')
+    #else:
+    print('Login Get request')
+    return send_from_directory('static','login.html')
 
 #@app.route('/event',methods=["POST","GET"])
 #def insert():
