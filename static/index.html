@@ -73,8 +73,16 @@
   } 
 
   async function logout() {
-	console.log('logout') 
+	console.log('logout and change') 
 	let {data} = await reqJSON("GET","/logout");
+	let d=new Date(Date.now() - 86400e3);
+	d=d.toUTCString();  
+	console.log(d)  
+	document.cookie= 'secret=;expires='+d;
+	
+	console.log('set null');
+	window.location.href='/login?'+d;
+  
 }
 
   async function CreateEvt(){
@@ -148,6 +156,11 @@
       return true;
 
   }
+ 
+function changelogout(){
+	console.log('Location Login')
+	window.location.href='/login';
+	}
 
   function displayTimers(){
     const nw =new Date();
@@ -179,7 +192,7 @@
     Date: <input type="text" id="dateval">
     </form>
     <button id = "create">Click </button>
-    <p>COUNTDOWN ------</p>
+    <p>COUNTDOWN Events List -----</p>
     <div id="events"></div> 
     <button id = "logout" onclick="logout()">logout </button>
 

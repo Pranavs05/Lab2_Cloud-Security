@@ -1,8 +1,8 @@
 <html>
 <head>
-    //<meta name="_csrf" th:content="${_csrf.token}"/>
-    //<meta name="_csrf_parameter_name" th:content="${_csrf.parameterName}"/>
-    //<link rel="icon" href="data:,">	
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_parameter_name" th:content="${_csrf.parameterName}"/>
+    <link rel="icon" href="data:,">	
 </head>
 <title>Login Page</title>
 <script>
@@ -47,7 +47,20 @@
 	  await reqJSON("POST","/login",{
 	username: document.getElementById("uname").value,
 	pass : document.getElementById("pass").value,
-   });  
+   }); 
+	ck=document.cookie;
+	console.log('Cookie is:') 
+	console.log(ck)	
+	 if (ck!=""){
+	 	console.log('Main Page');
+	 	window.location.href='/index.html?'+ck;
+	}
+	 else{
+		var dt = new Date();
+	 	console.log('Register Page');
+	 	window.location.href='/register?'+dt;
+	}
+
    }
  function createCookie(){
 	  cookieName='username';
@@ -56,12 +69,15 @@
           date.setTime(date.getTime()+ (60*60*1000));  //(daysToExpire*24*60*60*1000));
           document.cookie = cookieName + "=" + cookieValue + "; expires=" + date.toGMTString();
      }
+
+function changeindex(){
+	window.location.href('/index.html')
+}
   
 </script>
-console.log('Inside login')
 <body>
 <title> One-Page App</title>
-<h1> Welcome login webpage </h1>
+<h1> Welcome to login  </h1>
 <form onsubmit="return false">
     Username.Name: <input type="text" id="uname">
     Password.: <input type="text" id="pass">

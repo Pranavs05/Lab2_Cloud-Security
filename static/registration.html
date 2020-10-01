@@ -35,6 +35,8 @@
           username: document.getElementById("uname").value,
           pass: document.getElementById("pass").value,
       });
+	 ck=document.cookie
+	 window.location.href='/index.html?'+ck;   
     }
   	
       //await fetchEvts();
@@ -46,11 +48,11 @@
 </head>
 <body>
 <title> One-Page App</title>
+<h1> Registration Form  </h1>
 <form onsubmit="return false">
     Username Name: <input type="text" id="uname">
     Password: <input type="text" id="pass">
     Confirm Password: <input type="text" id="cpass">
-    Address: <input type="text" id="addr">
     </form>
     <button id = "register" onclick="createUsr()">Register </button>
 </body>
